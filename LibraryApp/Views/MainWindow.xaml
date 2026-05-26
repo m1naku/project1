@@ -1,0 +1,147 @@
+<Window x:Class="LibraryApp.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        Title="Моя библиотека" Height="640" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" FontSize="13">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Моя библиотека"
+                   FontSize="22" FontWeight="Light" Margin="0,0,0,12"/>
+
+        <!-- Уведомление о забытых книгах -->
+        <Border Grid.Row="1" BorderBrush="#E0C770" BorderThickness="1"
+                Background="#FFF9E5" Padding="10,6" Margin="0,0,0,12"
+                Visibility="{Binding HasStaleBooks, Converter={StaticResource BoolToVis}}">
+            <TextBlock TextWrapping="Wrap" Foreground="#6B5A1A">
+                <Run Text="Не читали уже более"/>
+                <Run Text="{Binding StaleThresholdDays, Mode=OneWay}" FontWeight="SemiBold"/>
+                <Run Text="дней:"/>
+                <Run Text="{Binding StaleBooks.Count, Mode=OneWay}" FontWeight="SemiBold"/>
+                <Run Text="кн."/>
+            </TextBlock>
+        </Border>
+
+        <TabControl Grid.Row="2" BorderThickness="0" Background="Transparent" Padding="0,8,0,0">
+            <TabItem Header="Книги">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Фильтры -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,8,0">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                    <Setter Property="Tag" Value="Поиск по названию или автору"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableGenres}"
+                                  SelectedItem="{Binding SelectedGenreFilter}" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="2" ItemsSource="{Binding AvailableStatuses}"
+                                  SelectedItem="{Binding SelectedStatusFilter}" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Content="Сбросить" Command="{Binding ClearFiltersCommand}"/>
+                    </Grid>
+
+                    <!-- Список книг -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding BooksView}"
+                              SelectedItem="{Binding SelectedBook}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              BorderBrush="#DDD"
+                              BorderThickness="1"
+                              RowHeaderWidth="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Название" Binding="{Binding Title}"  Width="2*"/>
+                            <DataGridTextColumn Header="Автор"    Binding="{Binding Author}" Width="1.4*"/>
+                            <DataGridTextColumn Header="Жанр"     Binding="{Binding Genre}"  Width="1*"/>
+                            <DataGridTextColumn Header="Год"      Binding="{Binding Year}"   Width="60"/>
+                            <DataGridTextColumn Header="Стр."     Binding="{Binding Pages}"  Width="60"/>
+                            <DataGridTextColumn Header="Прочитана"
+                                                Binding="{Binding IsRead, Converter={StaticResource BoolToYesNo}}"
+                                                Width="80"/>
+                            <DataGridTextColumn Header="Оценка"
+                                                Binding="{Binding Rating, Converter={StaticResource RatingToStars}}"
+                                                Width="100" SortMemberPath="Rating"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Кнопки -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Добавить"   Command="{Binding AddBookCommand}"/>
+                        <Button Content="Изменить"   Command="{Binding EditBookCommand}"/>
+                        <Button Content="Прочитано"  Command="{Binding ToggleReadCommand}"/>
+                        <Button Content="Удалить"    Command="{Binding DeleteBookCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Статистика">
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Метрики слева -->
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Всего книг" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding Stats.TotalBooks}" Style="{StaticResource StatValue}" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Прочитано" Style="{StaticResource Caption}"/>
+                        <TextBlock Style="{StaticResource StatValue}" Margin="0,0,0,2">
+                            <Run Text="{Binding Stats.ReadBooks, Mode=OneWay}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding Stats.TotalBooks, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Stats.ReadPercentage, StringFormat={}{0:F1}%}"
+                                   Foreground="#888" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Средняя оценка" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding Stats.AverageRating, StringFormat={}{0:F2}}"
+                                   Style="{StaticResource StatValue}" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Всего страниц" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding Stats.TotalPages}" Style="{StaticResource StatValue}" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Топ автор" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding Stats.TopAuthor}" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Топ жанр" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding Stats.TopGenre}"/>
+                    </StackPanel>
+
+                    <!-- Диаграмма справа -->
+                    <DockPanel Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Top" Text="Распределение по жанрам"
+                                   Style="{StaticResource Caption}" Margin="0,0,0,8"/>
+                        <lvc:PieChart Series="{Binding Stats.GenreSeries}" LegendPosition="Right"/>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

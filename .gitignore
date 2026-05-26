@@ -1,0 +1,45 @@
+## Build results
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+## .NET / Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+*.userprefs
+.vs/
+
+## Rider
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+
+## Logs / temp
+*.log
+*.tlog
+*.swp
+*.bak
+
+## Application local data
+library.json
